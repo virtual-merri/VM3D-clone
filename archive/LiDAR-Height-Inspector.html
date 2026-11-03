@@ -1,0 +1,1224 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LiDAR Height Inspector</title>
+
+  <link rel="stylesheet"
+    href="https://js.arcgis.com/5.1/esri/themes/light/main.css" />
+  <script type="module" src="https://js.arcgis.com/5.1/"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    arcgis-scene {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .panel {
+      position: absolute;
+      z-index: 10;
+      background: white;
+      color: #222;
+      padding: 16px;
+      border-radius: 10px;
+      box-shadow: 0 3px 14px #0003;
+    }
+
+    #controls-panel {
+      top: 16px;
+      right: 16px;
+      width: 225px;
+      max-height: calc(100vh - 52px);
+      overflow-y: auto;
+    }
+
+    #result-panel {
+      left: 16px;
+      bottom: 20px;
+      width: 270px;
+      max-width: calc(100vw - 64px);
+    }
+
+    .heading {
+      font-size: 17px;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    #height {
+      font-size: 32px;
+      font-weight: bold;
+      color: #087f8c;
+      margin: 8px 0;
+    }
+
+    #details {
+      font-size: 12px;
+      line-height: 1.6;
+      color: #555;
+      white-space: pre-line;
+      overflow-wrap: anywhere;
+    }
+
+    button {
+      width: 100%;
+      padding: 11px;
+      margin-top: 8px;
+      border: none;
+      border-radius: 6px;
+      background: #087f8c;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button:hover { background: #06636d; }
+    button.secondary { background: #505d6b; }
+    button.secondary:hover { background: #36414c; }
+    button.active { background: #087443; }
+    button.active:hover { background: #065b34; }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .hint {
+      color: #666;
+      font-size: 12px;
+      line-height: 1.5;
+      margin-top: 10px;
+    }
+
+    .section-label {
+      margin-top: 16px;
+      font-size: 17px;
+      font-weight: bold;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    #eye-status {
+      font-size: 12px;
+      margin-top: 8px;
+      color: #555;
+    }
+
+    .slider-control {
+      margin-top: 14px;
+    }
+
+    #coordinate-section {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid #ddd;
+      font-size: 12px;
+      line-height: 1.5;
+      pointer-events: none;
+    }
+
+    #coordinates { font-family: Consolas, monospace; overflow-wrap: anywhere; }
+
+    .slider-control label {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .slider-control input[type="range"] {
+      width: 100%;
+      accent-color: #087f8c;
+    }
+
+    @media (max-width: 500px) {
+      #controls-panel {
+        top: 10px;
+        right: 10px;
+        width: 190px;
+        max-height: 60vh;
+      }
+
+      #result-panel {
+        left: 10px;
+        bottom: 10px;
+        width: 210px;
+      }
+
+      #height { font-size: 26px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <arcgis-scene
+    id="scene"
+    item-id="c71ad5b695274ab2b74b06e705f3ea57">
+  </arcgis-scene>
+
+  <div class="panel" id="controls-panel">
+    <div class="heading">Camera settings</div>
+
+    <button id="eye-level-button">
+      Set eye level (1.8 m)
+    </button>
+
+    <button id="eye-mode-button" class="secondary">
+      Enable continuous eye height
+    </button>
+
+    <div id="eye-status">Eye-height mode is off.</div>
+
+    <div class="slider-control">
+      <label for="fov-slider">
+        <span>Camera field of view</span>
+        <strong id="fov-value">55°</strong>
+      </label>
+      <input
+        id="fov-slider"
+        type="range"
+        min="30"
+        max="100"
+        step="1"
+        value="55"
+      />
+    </div>
+
+    <div class="hint">
+      In continuous mode, drag to look around and use W/A/S/D to move.
+    </div>
+
+    <div class="section-label">LiDAR</div>
+
+    <div class="slider-control">
+      <label for="point-size-slider">
+        <span>LiDAR point size</span>
+        <strong id="point-size-value">5</strong>
+      </label>
+      <input id="point-size-slider" type="range" min="1" max="15" step="0.5" value="5" />
+      <div class="hint">Adjust the displayed size of each point.</div>
+    </div>
+
+    <div class="slider-control">
+      <label for="point-density-slider">
+        <span>LiDAR point density</span>
+        <strong id="point-density-value">100%</strong>
+      </label>
+      <input id="point-density-slider" type="range" min="10" max="100" step="5" value="100" />
+      <div class="hint">Lower values render fewer points and may improve performance.</div>
+    </div>
+
+    <button id="renderer-button" class="secondary">
+      Switch LiDAR to Elevation
+    </button>
+    <button id="screenshot-button" class="secondary">Export screenshot (PNG)</button>
+
+    <button id="zoom-button" class="secondary" disabled>
+      Zoom to selected point
+    </button>
+
+    <button id="clear-button" class="secondary">
+      Clear selection
+    </button>
+
+    <div class="section-label">Layers</div>
+
+    <button id="buildings-button" class="secondary">
+      Hide building models
+    </button>
+    <button id="boundaries-button" class="secondary">Hide property boundaries</button>
+    <button id="extrude-button" class="secondary">Extrude property boundaries: Off</button>
+
+    <button id="basemap-button" class="secondary">
+      Switch to grey basemap
+    </button>
+  </div>
+
+  <div class="panel" id="result-panel">
+    <div class="heading">LiDAR Height Inspector</div>
+    <div>Height above ground</div>
+    <div id="height">Ready</div>
+    <div id="details">Click a LiDAR point to begin.</div>
+    <div id="coordinate-section">
+      <div class="heading">Cursor coordinates</div>
+      <div id="coordinates">Move cursor over the scene</div>
+    </div>
+  </div>
+
+  <script type="module">
+    const scene = document.querySelector("#scene");
+    const heightText = document.querySelector("#height");
+    const details = document.querySelector("#details");
+
+    const eyeButton = document.querySelector("#eye-level-button");
+    const eyeModeButton = document.querySelector("#eye-mode-button");
+    const eyeStatus = document.querySelector("#eye-status");
+    const zoomButton = document.querySelector("#zoom-button");
+    const clearButton = document.querySelector("#clear-button");
+    const basemapButton = document.querySelector("#basemap-button");
+    const buildingsButton = document.querySelector("#buildings-button");
+    const rendererButton = document.querySelector("#renderer-button");
+    const fovSlider = document.querySelector("#fov-slider");
+    const fovValue = document.querySelector("#fov-value");
+    const pointSizeSlider = document.querySelector("#point-size-slider");
+    const pointSizeValue = document.querySelector("#point-size-value");
+    const pointDensitySlider = document.querySelector("#point-density-slider");
+    const pointDensityValue = document.querySelector("#point-density-value");
+    const screenshotButton = document.querySelector("#screenshot-button");
+    const boundariesButton = document.querySelector("#boundaries-button");
+    const extrudeButton = document.querySelector("#extrude-button");
+    const coordinatesText = document.querySelector("#coordinates");
+
+    const EYE_HEIGHT = 1.8;
+    const MOVE_SPEED = 3.0;
+    const MOUSE_SENSITIVITY = 0.18;
+
+    let selectedPoint = null;
+    let selectionVersion = 0;
+    let originalBasemap;
+    let isGreyBasemap = false;
+    let eyeMode = false;
+    let eyeUpdateRunning = false;
+    let lastMoveTime = 0;
+    let lastMouseX = null;
+    let lastMouseY = null;
+    let mouseLooking = false;
+    let currentRendererMode = "RGB";
+    let currentPointSize = Number(pointSizeSlider.value);
+    let currentPointDensity = Number(pointDensitySlider.value);
+    let coordinateRequestId = 0;
+
+    const savedRenderers = new Map();
+    const savedBuildingVisibility = new Map();
+    const savedBoundaryVisibility = new Map();
+    const rendererCache = new Map();
+    const keysDown = new Set();
+
+    await scene.viewOnReady();
+
+    const view = scene.view;
+    originalBasemap = view.map.basemap;
+
+    // Camera field-of-view slider. Keep all other camera properties unchanged.
+    const initialFov = Number.isFinite(view.camera.fov)
+      ? Math.round(view.camera.fov)
+      : 55;
+    fovSlider.value = String(initialFov);
+    fovValue.textContent = `${initialFov}°`;
+
+    fovSlider.addEventListener("input", () => {
+      const fov = Number(fovSlider.value);
+      fovValue.textContent = `${fov}°`;
+
+      const camera = view.camera.clone();
+      camera.fov = fov;
+      view.camera = camera;
+    });
+
+    const [
+      GraphicsLayer,
+      Graphic,
+      colorRendererCreator,
+      Search
+    ] = await $arcgis.import([
+      "@arcgis/core/layers/GraphicsLayer.js",
+      "@arcgis/core/Graphic.js",
+      "@arcgis/core/smartMapping/renderers/color.js",
+      "@arcgis/core/widgets/Search.js"
+    ]);
+
+    // Address/place search in the top-left corner of the scene.
+    // Uses ArcGIS's default geocoding search source.
+    const searchWidget = new Search({
+      view,
+      locationEnabled: false,
+      includeDefaultSources: true,
+      popupEnabled: true
+    });
+    view.ui.add(searchWidget, "top-left");
+
+    const selectionLayer = new GraphicsLayer({
+      title: "Selected LiDAR Point",
+      elevationInfo: { mode: "absolute-height" },
+      listMode: "hide"
+    });
+
+    // Property polygons are displayed as deduplicated graphics. No parcel
+    // selection or LiDAR filtering is performed, avoiding the slow point-cloud query.
+    const propertyDisplayLayer = new GraphicsLayer({
+      title: "Vicmap Property boundaries (deduplicated display)",
+      elevationInfo: { mode: "on-the-ground" },
+      listMode: "hide"
+    });
+
+    view.map.addMany([selectionLayer, propertyDisplayLayer]);
+    let extrudeProperties = false;
+    let propertyRefreshVersion = 0;
+    let propertyRefreshRunning = false;
+    let propertyRefreshQueued = false;
+    let propertyBoundariesVisible = true;
+
+    function allLayers() {
+      return view.map.allLayers.toArray();
+    }
+
+    function pointCloudLayers() {
+      return allLayers().filter(layer =>
+        layer.type === "point-cloud"
+      );
+    }
+
+    function boundaryLayers() {
+      return allLayers().filter(layer => {
+        if ([selectionLayer, propertyDisplayLayer].includes(layer) || layer.type === "point-cloud") return false;
+        const description = [layer.title, layer.portalItem?.title, layer.type]
+          .filter(Boolean).join(" ").toLowerCase();
+        return /property|parcel|cadastral|lot boundary|property boundary/.test(description);
+      });
+    }
+
+    function buildingLayers() {
+      return allLayers().filter(layer => {
+        if ([selectionLayer, propertyDisplayLayer].includes(layer)) return false;
+
+        const description = [
+          layer.title,
+          layer.portalItem?.title,
+          layer.type
+        ].filter(Boolean).join(" ").toLowerCase();
+
+        return (
+          /building|buildings|lod1|lod2|proposed model|3d model/.test(description) &&
+          layer.type !== "point-cloud"
+        );
+      });
+    }
+
+    const buildings = buildingLayers();
+    const boundaries = boundaryLayers();
+
+    boundaries.forEach(layer => savedBoundaryVisibility.set(layer, layer.visible));
+    // If no property layer is already in the scene, the toggle can load the
+    // public Vicmap Property Map Polygons service on demand.
+    let vicmapPropertyLayer = boundaries.find(layer =>
+      /vicmap property/i.test([layer.title, layer.portalItem?.title].filter(Boolean).join(" "))
+    ) || null;
+
+    // Add the public Vicmap Property layer automatically and show it by default.
+    if (!vicmapPropertyLayer) {
+      const [FeatureLayer] = await $arcgis.import([
+        "@arcgis/core/layers/FeatureLayer.js"
+      ]);
+      vicmapPropertyLayer = new FeatureLayer({
+        title: "Vicmap Property — Property Map Polygons",
+        url: "https://services-ap1.arcgis.com/P744lA0wf4LlBZ84/ArcGIS/rest/services/Vicmap_Property/FeatureServer/0",
+        // This service layer is a query source only. A deduplicated graphics
+        // layer is drawn instead so identical overlapping parcels appear once.
+        visible: false,
+        outFields: ["*"],
+        elevationInfo: { mode: "on-the-ground" },
+        popupEnabled: false
+      });
+      view.map.add(vicmapPropertyLayer);
+      try {
+        await vicmapPropertyLayer.load();
+        savedBoundaryVisibility.set(vicmapPropertyLayer, true);
+      } catch (error) {
+        console.error("Could not load Vicmap Property by default:", error);
+        boundariesButton.textContent = "Retry property boundaries";
+      }
+    }
+    // The source service is queried only for the current view extent. Identical
+    // polygon geometries are collapsed into one display graphic to prevent dark
+    // red overlaps. This is separate from the LiDAR point cloud and stays fast.
+    function geometrySignature(geometry) {
+      const rings = geometry?.rings;
+      if (!Array.isArray(rings)) return "";
+      return rings.map(ring => ring.slice(0, -1)
+        .map(point => `${Math.round(point[0] * 1000) / 1000},${Math.round(point[1] * 1000) / 1000}`)
+        .sort().join(";"))
+        .sort().join("|");
+    }
+
+    function propertySymbol(extruded) {
+      if (extruded) {
+        return {
+          type: "polygon-3d",
+          symbolLayers: [{
+            type: "extrude", size: 50,
+            material: { color: [255, 0, 0, 0.035] },
+            edges: { type: "solid", color: [255, 0, 0, 0.9], size: 1.2 }
+          }]
+        };
+      }
+      return {
+        type: "simple-fill",
+        color: [255, 0, 0, 0],
+        outline: { color: [255, 0, 0, 0.9], width: 1.1 }
+      };
+    }
+
+    async function refreshPropertyDisplay() {
+      if (!vicmapPropertyLayer || !vicmapPropertyLayer.loaded || propertyRefreshRunning) {
+        propertyRefreshQueued = true;
+        return;
+      }
+      propertyRefreshRunning = true;
+      propertyRefreshQueued = false;
+      const version = ++propertyRefreshVersion;
+      try {
+        const query = vicmapPropertyLayer.createQuery();
+        query.geometry = view.extent?.clone ? view.extent.clone() : view.extent;
+        query.spatialRelationship = "intersects";
+        query.returnGeometry = false;
+        query.outFields = [];
+
+        // Do not rely on a single queryFeatures() call: feature services cap
+        // the number of geometries returned per request. First retrieve the
+        // matching object IDs, then fetch the actual parcel geometries in
+        // manageable batches so dense views are not silently truncated.
+        const objectIds = await vicmapPropertyLayer.queryObjectIds(query);
+        if (version !== propertyRefreshVersion) return;
+        const features = [];
+        const batchSize = 500;
+        for (let offset = 0; offset < objectIds.length; offset += batchSize) {
+          const batchQuery = vicmapPropertyLayer.createQuery();
+          batchQuery.objectIds = objectIds.slice(offset, offset + batchSize);
+          batchQuery.returnGeometry = true;
+          batchQuery.outFields = ["*"];
+          const batchResult = await vicmapPropertyLayer.queryFeatures(batchQuery);
+          if (version !== propertyRefreshVersion) return;
+          features.push(...(batchResult.features || []));
+        }
+
+        const unique = new Map();
+        for (const feature of features) {
+          if (!feature.geometry || feature.geometry.type !== "polygon") continue;
+          const key = geometrySignature(feature.geometry);
+          if (key && !unique.has(key)) unique.set(key, feature);
+        }
+
+        propertyDisplayLayer.removeAll();
+        propertyDisplayLayer.addMany(Array.from(unique.values()).map(feature => new Graphic({
+          geometry: feature.geometry,
+          attributes: feature.attributes,
+          symbol: propertySymbol(extrudeProperties)
+        })));
+        propertyDisplayLayer.visible = propertyBoundariesVisible;
+      } catch (error) {
+        console.warn("Could not refresh deduplicated property display:", error);
+      } finally {
+        propertyRefreshRunning = false;
+        if (propertyRefreshQueued) refreshPropertyDisplay();
+      }
+    }
+
+    boundariesButton.textContent = vicmapPropertyLayer?.visible
+      ? "Hide property boundaries"
+      : "Show property boundaries";
+    if (vicmapPropertyLayer) {
+      // The source layer is deliberately hidden; only the deduplicated graphics render.
+      vicmapPropertyLayer.visible = false;
+      propertyDisplayLayer.visible = true;
+      refreshPropertyDisplay();
+      view.watch("stationary", stationary => {
+        if (stationary) refreshPropertyDisplay();
+      });
+    }
+
+    extrudeButton.addEventListener("click", () => {
+      extrudeProperties = !extrudeProperties;
+      extrudeButton.textContent = `Extrude property boundaries: ${extrudeProperties ? "On (50 m)" : "Off"}`;
+      extrudeButton.classList.toggle("active", extrudeProperties);
+      propertyDisplayLayer.graphics.forEach(graphic => { graphic.symbol = propertySymbol(extrudeProperties); });
+    });
+
+    buildings.forEach(layer => {
+      savedBuildingVisibility.set(layer, layer.visible);
+    });
+
+    console.info(
+      "Building layers identified:",
+      buildings.map(layer => ({
+        title: layer.title,
+        type: layer.type,
+        visible: layer.visible
+      }))
+    );
+
+    pointCloudLayers().forEach(layer => {
+      savedRenderers.set(layer, layer.renderer);
+    });
+
+    function rendererWithPointSize(renderer, size) {
+      const adjusted = renderer?.clone ? renderer.clone() : renderer;
+      if (adjusted) {
+        adjusted.pointSizeAlgorithm = {
+          type: "fixed-size",
+          useRealWorldSymbolSizes: false,
+          size: Number(size)
+        };
+      }
+      return adjusted;
+    }
+
+    function applyPointSize(size) {
+      currentPointSize = Number(size);
+      pointSizeValue.textContent = String(currentPointSize);
+      pointCloudLayers().forEach(layer => {
+        if (layer.renderer) layer.renderer = rendererWithPointSize(layer.renderer, currentPointSize);
+      });
+    }
+
+    pointSizeSlider.addEventListener("input", () => applyPointSize(pointSizeSlider.value));
+
+    // Density is expressed as a percentage of the layer's configured point density.
+    // ArcGIS exposes pointsPerInch on PointCloudLayer; preserve each layer's starting value.
+    const originalDensity = new Map();
+    pointCloudLayers().forEach(layer => {
+      if (Number.isFinite(layer.pointsPerInch)) originalDensity.set(layer, layer.pointsPerInch);
+    });
+    pointDensitySlider.addEventListener("input", () => {
+      currentPointDensity = Number(pointDensitySlider.value);
+      pointDensityValue.textContent = `${currentPointDensity}%`;
+      pointCloudLayers().forEach(layer => {
+        const base = originalDensity.get(layer);
+        if (Number.isFinite(base)) layer.pointsPerInch = base * currentPointDensity / 100;
+      });
+    });
+
+    // Export the rendered 3D scene plus the on-screen tool, coordinates and height panels.
+    screenshotButton.addEventListener("click", async () => {
+      screenshotButton.disabled = true;
+      const oldLabel = screenshotButton.textContent;
+      screenshotButton.textContent = "Capturing…";
+      try {
+        const shot = await view.takeScreenshot({ format: "png" });
+        const sceneImage = new Image();
+        sceneImage.src = shot.dataUrl;
+        await new Promise((resolve, reject) => {
+          sceneImage.onload = resolve;
+          sceneImage.onerror = reject;
+        });
+
+        const output = document.createElement("canvas");
+        output.width = sceneImage.naturalWidth;
+        output.height = sceneImage.naturalHeight;
+        const ctx = output.getContext("2d");
+        ctx.drawImage(sceneImage, 0, 0, output.width, output.height);
+
+        if (typeof window.html2canvas !== "function") {
+          throw new Error("The screenshot overlay library did not load.");
+        }
+
+        const scaleX = output.width / view.container.getBoundingClientRect().width;
+        const scaleY = output.height / view.container.getBoundingClientRect().height;
+        for (const panel of [
+          document.querySelector("#controls-panel"),
+          document.querySelector("#result-panel")
+        ]) {
+          const panelCanvas = await window.html2canvas(panel, {
+            backgroundColor: null,
+            scale: Math.max(scaleX, scaleY),
+            useCORS: true,
+            logging: false
+          });
+          const rect = panel.getBoundingClientRect();
+          const sceneRect = view.container.getBoundingClientRect();
+          ctx.drawImage(
+            panelCanvas,
+            (rect.left - sceneRect.left) * scaleX,
+            (rect.top - sceneRect.top) * scaleY,
+            rect.width * scaleX,
+            rect.height * scaleY
+          );
+        }
+
+        const link = document.createElement("a");
+        link.href = output.toDataURL("image/png");
+        link.download = `lidar-inspector-${new Date().toISOString().replace(/[:.]/g, "-")}.png`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (error) {
+        console.error("Screenshot export failed:", error);
+        alert("Could not export the full screenshot. Check that the page is online and reload it, then try again.");
+      } finally {
+        screenshotButton.disabled = false;
+        screenshotButton.textContent = oldLabel;
+      }
+    });
+
+    // Convert cursor position to a scene map point and display XYZ coordinates.
+    scene.addEventListener("arcgisViewPointerMove", async event => {
+      const native = event.detail?.native;
+      if (!native || mouseLooking) return;
+      const requestId = ++coordinateRequestId;
+      const rect = view.container.getBoundingClientRect();
+      const mapPoint = await view.toMap({
+        x: native.clientX - rect.left,
+        y: native.clientY - rect.top
+      });
+      if (requestId !== coordinateRequestId) return;
+      if (!mapPoint) {
+        coordinatesText.textContent = "No surface coordinate";
+        return;
+      }
+      const sr = mapPoint.spatialReference;
+      const srLabel = sr?.wkid ?? sr?.latestWkid ?? "unknown SR";
+      coordinatesText.textContent = `X: ${mapPoint.x.toFixed(3)}
+Y: ${mapPoint.y.toFixed(3)}
+Z: ${Number.isFinite(mapPoint.z) ? mapPoint.z.toFixed(3) : "—"}
+WKID: ${srLabel}`;
+    });
+    scene.addEventListener("arcgisViewPointerLeave", () => {
+      coordinateRequestId++;
+      coordinatesText.textContent = "Move cursor over the scene";
+    });
+
+    // FIX 1:
+    // Place the marker at the exact selected point elevation.
+    // Do not add 0.15 m to its Z coordinate.
+    // Use a smaller marker to reduce the appearance of floating.
+    function highlightPoint(point) {
+      selectionLayer.removeAll();
+
+      const markerPoint = point.clone();
+
+      selectionLayer.add(new Graphic({
+        geometry: markerPoint,
+        symbol: {
+          type: "simple-marker",
+          style: "circle",
+          color: [0, 255, 255, 1],
+          size: 8,
+          outline: {
+            color: [255, 255, 255, 1],
+            width: 1
+          }
+        }
+      }));
+    }
+
+    // Select LiDAR points and calculate height above ground.
+    scene.addEventListener("arcgisViewImmediateClick", async event => {
+      if (eyeMode || mouseLooking) return;
+
+      const version = ++selectionVersion;
+      heightText.textContent = "Calculating...";
+      details.textContent = "";
+
+      try {
+        const layers = pointCloudLayers();
+
+        if (!layers.length) {
+          heightText.textContent = "No point cloud";
+          details.textContent =
+            "No PointCloudLayer was found in the scene.";
+          return;
+        }
+
+        const hit = await scene.hitTest(
+          event.detail,
+          { include: layers }
+        );
+
+        if (version !== selectionVersion) return;
+
+        const pointHit = hit.results.find(result => {
+          const layer = result.graphic?.layer ?? result.layer;
+          return result.mapPoint?.z != null && (
+            layer?.type === "point-cloud"
+          );
+        });
+
+        if (!pointHit) {
+          heightText.textContent = "No point found";
+          details.textContent =
+            "Zoom in and click directly on a visible LiDAR point.";
+          return;
+        }
+
+        const point = pointHit.mapPoint.clone();
+
+        selectedPoint = point.clone();
+        zoomButton.disabled = false;
+
+        highlightPoint(point);
+
+        const groundResult =
+          await view.map.ground.queryElevation(point);
+
+        if (version !== selectionVersion) return;
+
+        const groundZ = groundResult?.geometry?.z;
+
+        if (!Number.isFinite(groundZ)) {
+          heightText.textContent = "No ground elevation";
+          details.textContent =
+            "Check DTM coverage and elevation data.";
+          return;
+        }
+
+        const height = point.z - groundZ;
+
+        heightText.textContent = `${height.toFixed(2)} m`;
+
+        details.textContent =
+          `Point elevation: ${point.z.toFixed(2)} m\n` +
+          `Ground elevation: ${groundZ.toFixed(2)} m`;
+
+      } catch (error) {
+        console.error("LiDAR selection error:", error);
+
+        if (version !== selectionVersion) return;
+
+        heightText.textContent = "Error";
+        details.textContent =
+          "Could not calculate height. Check the browser console.";
+      }
+    });
+
+    // FIX 2:
+    // Set camera height to 1.8 m above terrain and tilt to 90 degrees,
+    // giving a horizontal, forward-facing view.
+    // The current heading is preserved.
+    async function setEyeHeight(animate = true) {
+      const camera = view.camera.clone();
+      const position = camera.position.clone();
+
+      const groundResult =
+        await view.map.ground.queryElevation(position);
+
+      const groundZ = groundResult?.geometry?.z;
+
+      if (!Number.isFinite(groundZ)) {
+        throw new Error("No ground elevation at camera location.");
+      }
+
+      position.z = groundZ + EYE_HEIGHT;
+
+      camera.position = position;
+      camera.tilt = 90;
+
+      if (animate) {
+        await view.goTo(camera, {
+          animate: true,
+          duration: 700
+        });
+      } else {
+        view.camera = camera;
+      }
+    }
+
+    eyeButton.addEventListener("click", async () => {
+      eyeButton.disabled = true;
+
+      try {
+        await setEyeHeight(true);
+      } catch (error) {
+        console.error(error);
+        alert("Could not set eye height. Check terrain coverage.");
+      } finally {
+        eyeButton.disabled = false;
+      }
+    });
+
+    async function updateGroundHeight() {
+      if (!eyeMode || eyeUpdateRunning) return;
+
+      eyeUpdateRunning = true;
+
+      try {
+        const camera = view.camera.clone();
+        const position = camera.position.clone();
+
+        const groundResult =
+          await view.map.ground.queryElevation(position);
+
+        if (!eyeMode) return;
+
+        const groundZ = groundResult?.geometry?.z;
+
+        if (!Number.isFinite(groundZ)) return;
+
+        const targetZ = groundZ + EYE_HEIGHT;
+
+        if (Math.abs(position.z - targetZ) > 0.03) {
+          position.z = targetZ;
+          camera.position = position;
+          view.camera = camera;
+        }
+      } catch (error) {
+        console.warn("Eye-height update failed:", error);
+      } finally {
+        eyeUpdateRunning = false;
+      }
+    }
+
+    // Look around by rotating the camera in place.
+    scene.addEventListener("arcgisViewDrag", event => {
+      if (eyeMode) event.detail.stopPropagation();
+    });
+
+    scene.addEventListener("arcgisViewPointerDown", event => {
+      if (!eyeMode) return;
+
+      const native = event.detail.native;
+
+      if (native?.button !== 0) return;
+
+      mouseLooking = true;
+      lastMouseX = native.clientX;
+      lastMouseY = native.clientY;
+
+      event.detail.stopPropagation();
+    });
+
+    scene.addEventListener("arcgisViewPointerMove", event => {
+      if (!eyeMode || !mouseLooking) return;
+
+      const native = event.detail.native;
+      if (!native) return;
+
+      const dx = native.clientX - lastMouseX;
+      const dy = native.clientY - lastMouseY;
+
+      lastMouseX = native.clientX;
+      lastMouseY = native.clientY;
+
+      const camera = view.camera.clone();
+
+      camera.heading -= dx * MOUSE_SENSITIVITY;
+      camera.tilt = Math.max(
+        5,
+        Math.min(175, camera.tilt + dy * MOUSE_SENSITIVITY)
+      );
+
+      view.camera = camera;
+      event.detail.stopPropagation();
+    });
+
+    function stopMouseLook() {
+      mouseLooking = false;
+      lastMouseX = null;
+      lastMouseY = null;
+    }
+
+    scene.addEventListener("arcgisViewPointerUp", stopMouseLook);
+    scene.addEventListener("arcgisViewPointerLeave", stopMouseLook);
+
+    scene.addEventListener("arcgisViewKeyDown", event => {
+      if (!eyeMode) return;
+
+      const key = event.detail.key?.toLowerCase();
+
+      if (["w", "a", "s", "d"].includes(key)) {
+        keysDown.add(key);
+        event.detail.stopPropagation();
+      }
+    });
+
+    scene.addEventListener("arcgisViewKeyUp", event => {
+      const key = event.detail.key?.toLowerCase();
+      if (key) keysDown.delete(key);
+    });
+
+    window.addEventListener("keydown", event => {
+      if (
+        eyeMode &&
+        ["w", "a", "s", "d"].includes(event.key.toLowerCase()) &&
+        !["INPUT", "TEXTAREA"].includes(
+          document.activeElement?.tagName
+        )
+      ) {
+        event.preventDefault();
+        keysDown.add(event.key.toLowerCase());
+      }
+    });
+
+    window.addEventListener("keyup", event => {
+      keysDown.delete(event.key.toLowerCase());
+    });
+
+    window.addEventListener("blur", () => {
+      keysDown.clear();
+      stopMouseLook();
+    });
+
+    function movementFrame(timestamp) {
+      if (!eyeMode) return;
+
+      const delta = lastMoveTime
+        ? Math.min((timestamp - lastMoveTime) / 1000, 0.05)
+        : 0;
+
+      lastMoveTime = timestamp;
+
+      if (keysDown.size && delta > 0) {
+        const camera = view.camera.clone();
+        const position = camera.position.clone();
+
+        const distance = MOVE_SPEED * delta;
+        const heading = camera.heading * Math.PI / 180;
+
+        let forward = 0;
+        let sideways = 0;
+
+        if (keysDown.has("w")) forward++;
+        if (keysDown.has("s")) forward--;
+        if (keysDown.has("d")) sideways++;
+        if (keysDown.has("a")) sideways--;
+
+        const magnitude = Math.hypot(forward, sideways) || 1;
+
+        forward /= magnitude;
+        sideways /= magnitude;
+
+        position.x += distance * (
+          forward * Math.sin(heading) +
+          sideways * Math.cos(heading)
+        );
+
+        position.y += distance * (
+          forward * Math.cos(heading) -
+          sideways * Math.sin(heading)
+        );
+
+        camera.position = position;
+        view.camera = camera;
+
+        updateGroundHeight();
+      }
+
+      requestAnimationFrame(movementFrame);
+    }
+
+    eyeModeButton.addEventListener("click", async () => {
+      eyeModeButton.disabled = true;
+
+      try {
+        if (!eyeMode) {
+          await setEyeHeight(true);
+
+          eyeMode = true;
+
+          eyeModeButton.textContent =
+            "Disable continuous eye height";
+
+          eyeModeButton.classList.add("active");
+
+          eyeStatus.textContent =
+            "Active: drag to look around; use W/A/S/D to move.";
+
+          lastMoveTime = 0;
+          requestAnimationFrame(movementFrame);
+
+        } else {
+          eyeMode = false;
+
+          keysDown.clear();
+          stopMouseLook();
+
+          eyeModeButton.textContent =
+            "Enable continuous eye height";
+
+          eyeModeButton.classList.remove("active");
+          eyeStatus.textContent = "Eye-height mode is off.";
+        }
+      } catch (error) {
+        console.error(error);
+        alert("Unable to enable eye-height mode.");
+      } finally {
+        eyeModeButton.disabled = false;
+      }
+    });
+
+    zoomButton.addEventListener("click", async () => {
+      if (!selectedPoint) return;
+
+      zoomButton.disabled = true;
+
+      try {
+        await view.goTo({
+          target: selectedPoint.clone(),
+          heading: view.camera.heading,
+          tilt: 65,
+          range: 20
+        }, {
+          animate: true,
+          duration: 1000
+        });
+
+        if (eyeMode) await updateGroundHeight();
+
+      } catch (error) {
+        console.error("Zoom error:", error);
+      } finally {
+        zoomButton.disabled = !selectedPoint;
+      }
+    });
+
+    clearButton.addEventListener("click", () => {
+      selectionVersion++;
+      selectedPoint = null;
+      selectionLayer.removeAll();
+
+      heightText.textContent = "Ready";
+      details.textContent = "Click a LiDAR point to begin.";
+
+      zoomButton.disabled = true;
+    });
+
+    buildingsButton.addEventListener("click", () => {
+      const currentlyVisible = buildings.some(layer => layer.visible);
+      const newVisibility = !currentlyVisible;
+
+      buildings.forEach(layer => {
+        layer.visible = newVisibility;
+      });
+
+      buildingsButton.textContent = newVisibility
+        ? "Hide building models"
+        : "Show building models";
+
+      buildingsButton.classList.toggle("active", !newVisibility);
+    });
+
+    boundariesButton.addEventListener("click", () => {
+      const nextVisible = !propertyBoundariesVisible;
+      propertyBoundariesVisible = nextVisible;
+      boundaries.forEach(layer => { layer.visible = nextVisible; });
+      if (vicmapPropertyLayer) {
+        // Keep the query source hidden and toggle only its deduplicated display.
+        vicmapPropertyLayer.visible = false;
+        propertyDisplayLayer.visible = nextVisible;
+      }
+      boundariesButton.textContent = nextVisible
+        ? "Hide property boundaries"
+        : "Show property boundaries";
+      boundariesButton.classList.toggle("active", !nextVisible);
+    });
+
+    basemapButton.addEventListener("click", async () => {
+      basemapButton.disabled = true;
+
+      try {
+        if (!isGreyBasemap) {
+          view.map.basemap = "gray-vector";
+          isGreyBasemap = true;
+        } else {
+          view.map.basemap = originalBasemap;
+          isGreyBasemap = false;
+        }
+
+        await view.map.basemap.load();
+
+        basemapButton.textContent = isGreyBasemap
+          ? "Switch to aerial basemap"
+          : "Switch to grey basemap";
+
+      } catch (error) {
+        console.error("Basemap switch error:", error);
+        alert("Unable to switch basemap.");
+      } finally {
+        basemapButton.disabled = false;
+      }
+    });
+
+    async function getRenderer(layer, mode) {
+      const key = `${layer.uid}-${mode}`;
+
+      if (rendererCache.has(key)) {
+        return rendererCache.get(key);
+      }
+
+      let result;
+
+      if (mode === "RGB") {
+        result = await colorRendererCreator
+          .createPCTrueColorRenderer({ layer });
+      } else {
+        result = await colorRendererCreator
+          .createPCContinuousRenderer({
+            layer,
+            field: "ELEVATION"
+          });
+      }
+
+      rendererCache.set(key, result.renderer);
+      return result.renderer;
+    }
+
+    rendererButton.addEventListener("click", async () => {
+      const layers = pointCloudLayers();
+
+      if (!layers.length) {
+        alert("No point-cloud layers were found.");
+        return;
+      }
+
+      rendererButton.disabled = true;
+
+      try {
+        const nextMode =
+          currentRendererMode === "RGB" ? "ELEVATION" : "RGB";
+
+        const generated = [];
+
+        for (const layer of layers) {
+          if (nextMode === "RGB" && savedRenderers.get(layer)) {
+            generated.push({
+              layer,
+              renderer: savedRenderers.get(layer)
+            });
+          } else {
+            generated.push({
+              layer,
+              renderer: await getRenderer(layer, nextMode)
+            });
+          }
+        }
+
+        generated.forEach(item => {
+          item.layer.renderer = rendererWithPointSize(item.renderer, currentPointSize);
+        });
+
+        currentRendererMode = nextMode;
+
+        rendererButton.textContent =
+          nextMode === "RGB"
+            ? "Switch LiDAR to Elevation"
+            : "Switch LiDAR to RGB";
+
+      } catch (error) {
+        console.error("LiDAR renderer error:", error);
+
+        alert(
+          "Could not change the LiDAR display. " +
+          "Check the point-cloud attributes and renderer configuration."
+        );
+      } finally {
+        rendererButton.disabled = false;
+      }
+    });
+
+  </script>
+</body>
+</html>
