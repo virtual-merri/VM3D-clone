@@ -93,7 +93,7 @@
 <style>.workspace-progress{position:fixed;inset:0;z-index:20000;display:flex;align-items:center;justify-content:center;background:rgba(3,13,19,.58);backdrop-filter:blur(3px)}.workspace-progress.hidden{display:none}.workspace-progress-card{min-width:260px;max-width:min(390px,calc(100vw - 36px));padding:24px 28px;border:1px solid #527987;border-radius:15px;background:rgba(12,31,41,.98);box-shadow:0 18px 60px #000b;color:#f2f8fa;text-align:center}.workspace-progress-card .spinner{width:34px;height:34px;margin:0 auto 14px;border-width:4px}.workspace-progress-card h3{margin:0 0 7px;font-size:17px}.workspace-progress-card p{margin:0;color:#bfd0d6;font-size:12px;line-height:1.5}.nav-orb{display:none}.nav-orb.nav-orb-open{display:grid;left:18px;right:auto;bottom:142px}.nav-controller-toggle{position:absolute;z-index:5;left:18px;right:auto;bottom:52px;border:1px solid #628795;border-radius:9px;background:rgba(14,43,57,.94);color:#f0f7f9;padding:10px 13px;font-size:12px;font-weight:700;box-shadow:0 5px 16px #0006;cursor:pointer}.nav-controller-toggle:hover{border-color:#73d6c3;color:#73d6c3}@media(max-width:650px){.nav-orb.nav-orb-open{left:10px;bottom:142px}.nav-controller-toggle{left:10px;bottom:52px}}</style>
 </head>
 <body><div id="app"><div class="shell"><header class="topbar"><div class="logo" aria-hidden="true">VM</div><div><div class="brand">Virtual Merri-bek 3D</div><div class="subtitle">COMMUNITY DEVELOPMENT VIEWER</div></div><div class="top-actions"><span class="pill">PUBLIC SCENE</span><span class="pill status-pill" id="topStatus">CONNECTING TO ARCGIS</span><button class="btn" id="workspaceMenuBtn" style="white-space:nowrap">Save/load workspace ▾</button></div></header><main class="workspace">
-<div class="intro-overlay hidden" id="introOverlay" role="dialog" aria-modal="true" aria-labelledby="introTitle"><div class="intro-card splash-card"><div class="intro-brand"><div class="intro-mark" aria-hidden="true">VM</div><div><div class="eyebrow">MERRI-BEK CITY COUNCIL</div><div class="intro-wordmark">Virtual Merri-bek 3D</div></div></div><h1 id="introTitle">Explore advertised developments in 3D</h1><p><strong>VM3D</strong> is Merri-bek City Council’s 3D Digital Twin platform, primarily intended for the community to access and view select 3D models of advertised development applications as part of the planning application process. The platform and its data are managed through the Virtual Merri-bek project, led by Council’s <strong>3D Digital Twin &amp; Visualisation Lead</strong>.</p><div class="intro-features"><div><strong>Explore</strong><span>Navigate the 3D scene and view buildings in context.</span></div><div><strong>Inspect</strong><span>Use layer controls, sunlight and shadows, and 3D measurements.</span></div><div><strong>Understand</strong><span>View available spatial data to support community understanding of the built environment.</span></div></div><section class="splash-models" aria-labelledby="splashModelsHeading"><div class="splash-models-head"><div><h2 id="splashModelsHeading">Explore advertised developments</h2><p>Select a model to load it into the scene and fly straight to its location.</p></div></div><div id="splashModelsStatus" class="splash-model-status" role="status">Finding publicly available advertised 3D models…</div><div id="splashModelsGrid" class="splash-model-grid"></div></section><section class="legal-notice"><h3>By using VM3D Pro you consent to the following</h3><p><strong>Disclaimer:</strong> While every reasonable effort has been made to ensure the accuracy of the information presented in this application, Merri-bek City Council, its employees, and contractors make no guarantees as to the completeness, reliability, or accuracy of the data. The Council disclaims all liability for any loss or damage arising from use of this application. Any actions taken based on the information provided are at your own discretion and risk.</p></section><p class="contact-line">Help, questions or feedback: <a href="mailto:virtual@merri-bek.vic.gov.au">virtual@merri-bek.vic.gov.au</a></p><p class="intro-note">This is a visualisation tool. Data availability and accuracy vary by layer; use official Council information for formal planning or property decisions.</p><div class="intro-actions"><button class="btn" id="introHelpBtn">Help / contact</button><button class="btn" id="skipTourBtn">Explore without tour</button><button class="btn primary" id="enterTwinBtn">Start quick tour →</button></div></div></div>
+<div class="intro-overlay hidden" id="introOverlay" role="dialog" aria-modal="true" aria-labelledby="introTitle"><div class="intro-card splash-card"><div class="intro-brand"><div class="intro-mark" aria-hidden="true">VM</div><div><div class="eyebrow">MERRI-BEK CITY COUNCIL</div><div class="intro-wordmark">Virtual Merri-bek 3D</div></div></div><h1 id="introTitle">Explore advertised developments in 3D</h1><p><strong>VM3D</strong> is Merri-bek City Council’s 3D Digital Twin platform, primarily intended for the community to access and view select 3D models of advertised development applications as part of the planning application process. The platform and its data are managed through the Virtual Merri-bek project, led by Council’s <strong>3D Digital Twin &amp; Visualisation Lead</strong>.</p><div class="intro-features"><div><strong>Explore</strong><span>Navigate the 3D scene and view buildings in context.</span></div><div><strong>Inspect</strong><span>Use layer controls, sunlight and shadows, and 3D measurements.</span></div><div><strong>Understand</strong><span>View available spatial data to support community understanding of the built environment.</span></div></div><section class="splash-models" aria-labelledby="splashModelsHeading"><div class="splash-models-head"><div><h2 id="splashModelsHeading">Explore advertised developments</h2><p>Select a model to load it into the scene and fly straight to its location.</p></div></div><div id="splashModelsStatus" class="splash-model-status" role="status">Finding publicly available advertised 3D models…</div><div id="splashModelsGrid" class="splash-model-grid"></div></section><section class="splash-models" aria-labelledby="splashInternalModelsHeading"><div class="splash-models-head"><div><h2 id="splashInternalModelsHeading">Internal Council models</h2><p>Models from the internal ArcGIS Online group. This is an anonymous-access test; sign-in has not been configured.</p></div></div><div id="splashInternalModelsStatus" class="splash-model-status" role="status">Checking anonymous access to internal models…</div><div id="splashInternalModelsGrid" class="splash-model-grid"></div></section><section class="legal-notice"><h3>By using VM3D Pro you consent to the following</h3><p><strong>Disclaimer:</strong> While every reasonable effort has been made to ensure the accuracy of the information presented in this application, Merri-bek City Council, its employees, and contractors make no guarantees as to the completeness, reliability, or accuracy of the data. The Council disclaims all liability for any loss or damage arising from use of this application. Any actions taken based on the information provided are at your own discretion and risk.</p></section><p class="contact-line">Help, questions or feedback: <a href="mailto:virtual@merri-bek.vic.gov.au">virtual@merri-bek.vic.gov.au</a></p><p class="intro-note">This is a visualisation tool. Data availability and accuracy vary by layer; use official Council information for formal planning or property decisions.</p><div class="intro-actions"><button class="btn" id="introHelpBtn">Help / contact</button><button class="btn" id="skipTourBtn">Explore without tour</button><button class="btn primary" id="enterTwinBtn">Start quick tour →</button></div></div></div>
 <div class="tour-overlay hidden" id="tourOverlay" aria-live="polite"><div class="tour-card" id="tourCard"><div class="tour-kicker" id="tourCounter">QUICK TOUR · 1 OF 6</div><h2 id="tourTitle">Explore the scene</h2><p id="tourText">Use the mouse to orbit and zoom around Merri-bek.</p><div class="tour-actions"><button class="btn" id="tourSkipBtn">Skip tour</button><div class="tour-actions-right"><button class="btn" id="tourBackBtn">Back</button><button class="btn primary" id="tourNextBtn">Next →</button></div></div></div></div>
 <div class="intro-overlay hidden" id="helpOverlay" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="intro-card help-card"><button class="modal-close" id="closeHelpBtn" aria-label="Close help">×</button><div class="eyebrow">VIRTUAL MERRI-BEK</div><h2 id="helpTitle">Help & contact</h2><p>Use the control panel to manage scene layers, change LiDAR display settings settings, adjust the camera, and access sunlight, shadow and measurement tools.</p><ul><li><strong>Navigate:</strong> drag to orbit, use the navigation controls, or select Home view to return to the starting camera.</li><li><strong>Layers:</strong> open the Layers tab to show or hide available 3D data.</li><li><strong>Sunlight & shadows:</strong> open Tools and use the Daylight widget to choose a date and time.</li><li><strong>Screenshots:</strong> Screenshot scene saves the 3D view; Capture window requests permission to capture the browser window including controls.</li></ul><p>For help, questions or feedback about Virtual Merri-bek, email <a href="mailto:virtual@merri-bek.vic.gov.au">virtual@merri-bek.vic.gov.au</a>.</p><section class="legal-notice"><h3>Disclaimer</h3><p>While every reasonable effort has been made to ensure the accuracy of the information presented in this application, Merri-bek City Council, its employees, and contractors make no guarantees as to the completeness, reliability, or accuracy of the data. The Council disclaims all liability for any loss or damage arising from use of this application. Any actions taken based on the information provided are at your own discretion and risk.</p></section><div class="intro-actions"><button class="btn" id="helpWebsiteBtn">Council website ↗</button><button class="btn primary" id="dismissHelpBtn">Close</button></div></div></div>
 <div class="scene"><div id="viewDiv"><div class="loading" id="loading"><div class="loadcard"><div class="spinner"></div><h2>Loading Virtual Merri-bek</h2><p>Connecting to the public ArcGIS scene and its layers…</p><p id="loadMessage">Initialising 3D viewer</p></div></div></div>
@@ -299,6 +299,7 @@ require(["esri/WebScene","esri/views/SceneView","esri/Camera","esri/widgets/Elev
     if(!root.children.length)root.innerHTML='<div class="footnote">No operational layers were found. Confirm this item is a public Web Scene.</div>';
   }
   const ADDITIONAL_MODELS_GROUP_ID='090a03ccf9194c818fe599b050426853';
+  const INTERNAL_MODELS_GROUP_ID='780a9414b3344df6ba1a59b5d82199a4';
   const additionalModelLayers=new Map();
   let splashAdvertisedItems=[];
   let splashModelsPromise=null;
@@ -350,9 +351,56 @@ require(["esri/WebScene","esri/views/SceneView","esri/Camera","esri/widgets/Elev
     })();
     return splashModelsPromise;
   }
+  let splashInternalModelsPromise=null;
+  let splashInternalItems=[];
+  async function loadSplashInternalModels(){
+    if(splashInternalModelsPromise)return splashInternalModelsPromise;
+    splashInternalModelsPromise=(async()=>{
+      const grid=$('splashInternalModelsGrid'),label=$('splashInternalModelsStatus');
+      if(!grid||!label)return;
+      label.textContent='Checking anonymous access to the internal ArcGIS Online group…';
+      try{
+        const url='https://www.arcgis.com/sharing/rest/search?q='+encodeURIComponent('group:'+INTERNAL_MODELS_GROUP_ID)+'&num=100&sortField=title&sortOrder=asc&f=json';
+        const response=await fetch(url);
+        if(!response.ok)throw new Error('ArcGIS Online returned HTTP '+response.status);
+        const data=await response.json();
+        if(data.error)throw new Error(data.error.message||'ArcGIS Online search failed');
+        splashInternalItems=(data.results||[]).filter(item=>/scene service|scene layer/i.test(item.type||'')&&!/feature service/i.test(item.type||''));
+        grid.replaceChildren();
+        if(!splashInternalItems.length){
+          label.textContent='No 3D models are anonymously accessible in this group. If the group is private, OAuth sign-in will be required.';
+          return;
+        }
+        splashInternalItems.forEach(item=>{
+          const card=document.createElement('button');card.type='button';card.className='splash-model-card';
+          card.dataset.statusId='splashInternalModelsStatus';
+          card.setAttribute('aria-label','Load and fly to '+(item.title||'internal Council model'));
+          const thumbWrap=document.createElement('div');thumbWrap.className='splash-model-thumb-fallback';thumbWrap.textContent='⌂';
+          const thumbUrl=arcgisThumbnailUrl(item);
+          if(thumbUrl){
+            const img=document.createElement('img');img.className='splash-model-thumb';img.alt='';img.loading='lazy';img.src=thumbUrl;
+            img.addEventListener('error',()=>{img.replaceWith(thumbWrap);},{once:true});
+            thumbWrap.style.display='none';card.append(img);
+          }else card.append(thumbWrap);
+          const meta=document.createElement('div');meta.className='splash-model-meta';
+          const title=document.createElement('div');title.className='splash-model-title';title.textContent=item.title||'Internal Council model';
+          const desc=document.createElement('div');desc.className='splash-model-desc';desc.textContent=item.snippet||item.description||'Internal Council 3D model';
+          const action=document.createElement('div');action.className='splash-model-action';action.textContent='LOAD MODEL & FLY TO →';
+          meta.append(title,desc,action);card.append(meta);
+          card.addEventListener('click',()=>selectSplashAdvertisedModel(item,card));
+          grid.append(card);
+        });
+        label.textContent=splashInternalItems.length+' internally grouped 3D model'+(splashInternalItems.length===1?'':'s')+' anonymously accessible. Select one to test loading.';
+      }catch(err){
+        label.textContent='Anonymous request failed: '+(err.message||err)+'. This is expected if the group or its items require an ArcGIS Online sign-in.';
+        console.warn('Splash internal-model list failed',err);
+      }
+    })();
+    return splashInternalModelsPromise;
+  }
   async function selectSplashAdvertisedModel(item,card){
     if(!item||!card)return;
-    const label=$('splashModelsStatus');
+    const label=$(card.dataset.statusId||'splashModelsStatus');
     const previous=card.querySelector('.splash-model-action');
     const oldText=previous?previous.textContent:'LOAD MODEL & FLY TO →';
     card.disabled=true;if(previous)previous.textContent='LOADING MODEL…';
@@ -373,7 +421,7 @@ require(["esri/WebScene","esri/views/SceneView","esri/Camera","esri/widgets/Elev
       if(!target)throw new Error('This model does not provide a camera extent.');
       closeIntro();
       await view.goTo(target.expand(1.6),{duration:1400});
-      status('Loaded advertised model: '+(item.title||item.id));
+      status('Loaded 3D model: '+(item.title||item.id));
       renderLayers();
     }catch(err){
       if(label)label.textContent='Could not load '+(item.title||'this model')+': '+(err.message||err);
@@ -1675,7 +1723,7 @@ $('screenshotBtn').addEventListener('click',async()=>{try{if(!view?.ready)throw 
       if(message)message.textContent='Could not load the 3D scene: '+(err&&err.message?err.message:'ArcGIS Online connection failed')+'. Please refresh or try another network.';
     });
     view.when(async()=>{
-      initialCamera=view.camera.clone();$('loading').classList.add('hidden');openIntro();loadSplashAdvertisedModels();renderLayers();
+      initialCamera=view.camera.clone();$('loading').classList.add('hidden');openIntro();loadSplashAdvertisedModels();loadSplashInternalModels();renderLayers();
       $('buildingTexturesToggle').addEventListener('change',e=>{buildingTexturesEnabled=e.target.checked;applyBuildingAppearance();});
       $('buildingOutlinesToggle').addEventListener('change',e=>{buildingOutlinesEnabled=e.target.checked;applyBuildingAppearance();});
 
